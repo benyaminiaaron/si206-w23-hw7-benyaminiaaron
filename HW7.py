@@ -117,6 +117,7 @@ def birthyear_nationality_search(age, country, cur, conn):
     stop = 2023 - age
     cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear<?",(country, stop))
     final = cur.fetchall()
+    
     return final
 
 ## [TASK 4]: 15 points
@@ -142,7 +143,7 @@ def position_birth_search(position, age, cur, conn):
     cur.execute("SELECT p.name, ps.position, p.birthyear FROM Players p JOIN Positions ps ON p.position_id=ps.id WHERE ps.position=? AND p.birthyear>?",
             (position, stop))
     final = cur.fetchall()
-    
+
     return final
 
 
