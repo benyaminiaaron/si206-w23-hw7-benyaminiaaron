@@ -53,7 +53,7 @@ def make_positions_table(data, cur, conn):
 #     created for you -- see make_positions_table above for details.
 
 def make_players_table(data, cur, conn):
-    
+
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Players (
             id INTEGER PRIMARY KEY,
@@ -111,7 +111,11 @@ def nationality_search(countries, cur, conn):
 
 
 def birthyear_nationality_search(age, country, cur, conn):
-    pass
+    
+    cutoff = 2023 - age
+    cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear<?",(country, cutoff))
+    final = cur.fetchall()
+    return final
 
 ## [TASK 4]: 15 points
 # finish the function position_birth_search
