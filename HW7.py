@@ -8,6 +8,7 @@ import unittest
 import sqlite3
 import json
 import os
+import pprint
 
 def read_data(filename):
     full_path = os.path.join(os.path.dirname(__file__), filename)
@@ -92,6 +93,7 @@ def nationality_search(countries, cur, conn):
     str_countries = ','.join(['?' for _ in range(len(countries))])
     cur.execute("SELECT name, position_id, nationality FROM Players WHERE nationality IN ({})".format(str_countries), countries)
     final = cur.fetchall()
+
     return final
 
 ## [TASK 3]: 10 points
@@ -112,8 +114,8 @@ def nationality_search(countries, cur, conn):
 
 def birthyear_nationality_search(age, country, cur, conn):
     
-    cutoff = 2023 - age
-    cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear<?",(country, cutoff))
+    stop = 2023 - age
+    cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear<?",(country, stop))
     final = cur.fetchall()
     return final
 
@@ -135,11 +137,12 @@ def birthyear_nationality_search(age, country, cur, conn):
     # HINT: You'll have to use JOIN for this task.
 
 def position_birth_search(position, age, cur, conn):
-    
-    cutoff = 2023 - age
+
+    stop = 2023 - age
     cur.execute("SELECT p.name, ps.position, p.birthyear FROM Players p JOIN Positions ps ON p.position_id=ps.id WHERE ps.position=? AND p.birthyear>?",
-            (position, cutoff))
+            (position, stop))
     final = cur.fetchall()
+    
     return final
 
 
@@ -179,13 +182,43 @@ def position_birth_search(position, age, cur, conn):
 #     the passed year. 
 
 def make_winners_table(data, cur, conn):
-    pass
+
+    cur.execute("CREATE TABLE IF NOT EXISTS Winners (id INTEGER PRIMARY KEY, name TEXT)")
+    for teams in data['seasons']:
+        if teams['winner'] == None:
+            continue
+        else:
+            cur.execute("SELECT id FROM Winners WHERE id=?", (teams['winner']['id'],))
+            final = cur.fetchone()
+            if final is None:
+                cur.execute("INSERT INTO Winners (id, name) VALUES (?, ?)", (teams['winner']['id'], teams['winner']['name']))
+                conn.commit()
+            else:
+                continue
+
+    conn.commit()
 
 def make_seasons_table(data, cur, conn):
-    pass
+
+    cur.execute("DROP TABLE IF EXISTS Seasons")
+    cur.execute("CREATE TABLE Seasons (id INTEGER PRIMARY KEY, winner_id TEXT, end_year INTEGER)")
+    for seasons in data['seasons']:
+        if seasons['winner'] == None:
+            continue
+        else:
+            name = seasons['winner']['name']
+            cur.execute("SELECT id FROM Winners WHERE name = ?", (name,))
+            id_winner = cur.fetchone()[0]
+            end = int(seasons["endDate"][0:4])
+            cur.execute("INSERT INTO Seasons (id, winner_id, end_year) VALUES (?, ?, ?)", (seasons["id"], id_winner, end))
+
+    conn.commit()
 
 def winners_since_search(year, cur, conn):
-    pass
+
+    cur.execute("SELECT Winners.name, COUNT(*) FROM Seasons JOIN Winners ON Winners.id = Seasons.winner_id WHERE end_year >= ? GROUP BY Winners.name", (int(year),))
+    final = cur.fetchall()
+    return {winners: counts for winners, counts in final}
 
 
 class TestAllMethods(unittest.TestCase):
@@ -244,17 +277,21 @@ class TestAllMethods(unittest.TestCase):
         self.cur2.execute('SELECT * from Winners')
         winners_list = self.cur2.fetchall()
 
-        pass
+        self.assertEqual(len(winners_list), 7)
+        self.assertIs(type(winners_list[0][0]), int)
+        self.assertIs(type(winners_list[0][1]), str)
 
     def test_make_seasons_table(self):
         self.cur2.execute('SELECT * from Seasons')
         seasons_list = self.cur2.fetchall()
 
-        pass
+        self.assertEqual(len(seasons_list[0]), 3)
+        self.assertEqual(len(seasons_list), 28)
 
     def test_winners_since_search(self):
-
-        pass
+        winners = winners_since_search('2010', self.cur2, self.conn2)
+        self.assertEqual(len(winners), 5)
+        self.assertEqual(winners['Liverpool FC'], 1)
 
 
 def main():
