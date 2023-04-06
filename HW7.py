@@ -117,7 +117,7 @@ def birthyear_nationality_search(age, country, cur, conn):
     stop = 2023 - age
     cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear<?",(country, stop))
     final = cur.fetchall()
-    
+
     return final
 
 ## [TASK 4]: 15 points
@@ -140,8 +140,7 @@ def birthyear_nationality_search(age, country, cur, conn):
 def position_birth_search(position, age, cur, conn):
 
     stop = 2023 - age
-    cur.execute("SELECT p.name, ps.position, p.birthyear FROM Players p JOIN Positions ps ON p.position_id=ps.id WHERE ps.position=? AND p.birthyear>?",
-            (position, stop))
+    cur.execute("SELECT p.name, ps.position, p.birthyear FROM Players p JOIN Positions ps ON p.position_id=ps.id WHERE ps.position=? AND p.birthyear>?",(position, stop))
     final = cur.fetchall()
 
     return final
@@ -219,6 +218,7 @@ def winners_since_search(year, cur, conn):
 
     cur.execute("SELECT Winners.name, COUNT(*) FROM Seasons JOIN Winners ON Winners.id = Seasons.winner_id WHERE end_year >= ? GROUP BY Winners.name", (int(year),))
     final = cur.fetchall()
+    
     return {winners: counts for winners, counts in final}
 
 
