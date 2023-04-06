@@ -1,8 +1,8 @@
 
-# Your name:
-# Your student id:
-# Your email:
-# List who you have worked with on this project:
+# Your name: Aaron Benyamini
+# Your student id: 7901 4001
+# Your email: aaronben@umich.edu
+# List who you have worked with on this project: Daniel Kates
 
 import unittest
 import sqlite3
@@ -218,7 +218,7 @@ def winners_since_search(year, cur, conn):
 
     cur.execute("SELECT Winners.name, COUNT(*) FROM Seasons JOIN Winners ON Winners.id = Seasons.winner_id WHERE end_year >= ? GROUP BY Winners.name", (int(year),))
     final = cur.fetchall()
-    
+
     return {winners: counts for winners, counts in final}
 
 
